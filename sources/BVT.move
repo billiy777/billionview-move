@@ -1,8 +1,10 @@
 module BVT::bvt_coin {
     use std::string;
+    use std::vector;
     use std::signer;
 
     use aptos_framework::coin::{Self, MintCapability, FreezeCapability, BurnCapability};
+    use aptos_framework::account::Self;
 
     /// Account has no capabilities (burn/mint).
     const ENO_CAPABILITIES: u64 = 1;
@@ -64,16 +66,16 @@ module BVT::bvt_coin {
         move_to(account, BurnCapabilityWrapper<CoinType> { burn_cap });
 
         // Burn the freeze & mint capabilities (move to resource account with dropped signer)
-        // let (resource_account, _) = account::create_resource_account(account, vector::empty<u8>());
-        move_to(account, FreezeCapabilityWrapper<CoinType> { freeze_cap });
-        move_to(account, MintCapabilityWrapper<CoinType> { mint_cap });
+        let (resource_account, _) = account::create_resource_account(account, vector::empty<u8>());
+        move_to(&resource_account, FreezeCapabilityWrapper<CoinType> { freeze_cap });
+        move_to(&resource_account, MintCapabilityWrapper<CoinType> { mint_cap });
     }
 
     public entry fun register(account: &signer) {
         coin::register<BvtCoin>(account);
     }
 
-    public entry fun transfer(from: &signer, to: address, amount: u64,) {
+    public entry fun transfer(from: &signer, to: address, amount: u64) {
         coin::transfer<BvtCoin>(from, to, amount);
     }
 }
